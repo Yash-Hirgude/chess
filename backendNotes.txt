@@ -1,0 +1,23 @@
+directory Structure inside src:
+-db  => contains actual code for connecting to db 
+-models => contains schema for documents
+-controllers => functions/methods
+-routes => handling routes
+-middlewares
+-utils => contains helper functions or functions like  for sending mail, etc.
+-more(depends)
+-index.js => db connects
+-app.js => config cookie, url encode
+-constants=> enum,db-name
+
+require => used in commonJs => works synchronously
+import => used in moduleJs => works bit asynchronous => we cannot directly use it in nodejs, to use this we need to add 'type' : 'module' this key value pair in package.json of the server.
+
+CORS : Cross-Origin Resource Sharing in this Cross Origin means different origins. we can say two different ports are cross origins, different urls, different domains etc are cross origins.
+       Now then what does origin mean? when we have same domain and url and port then that is same origin.
+       we cannot share data between cross origin. This is for security.
+       To allow some different origin to access data from our server, we need to whitelist that origin and that is mostly done in backend by backend developer.
+       we can handle or whitelist the cors using the CORS library, but what the issue is, the port number of the server or client keeps on changing when deployed, so if we whitelist a particular port of a domain and url, then sometime later the port number can change.
+
+
+Bad practice of avoiding cors error : we know at the end when the frontend is to be sreved, it's code is build and then we copy this build and paste it in the backend build. so both the frontend and backend are bundled together and this avoids cors error and also both frontend and backend runs on same server reducing the server cost.

@@ -1,0 +1,259 @@
+react vite is nothing but just react with vite tools.
+
+virtual dom is not used much now due to additions of new feature in react.
+
+createRoot in app.js creates the virtual dom.
+
+fiber is the update of the virtual dom.
+React Fiber Architecture: => imp.
+Its headline feature is incremental rendering: the ability to split rendering work into chunks and spread it out over multiple frames.
+Other key features include the ability to pause, abort, or reuse work as new updates come in; the ability to assign priority to different types of updates; and new concurrency primitives.
+What is reconciliation?
+reconciliation
+The algorithm React uses to diff one tree with another to determine which parts need to be changed.
+update
+A change in the data used to render a React app. Usually the result of `setState`. Eventually results in a re-render.
+The central idea of React's API is to think of updates as if they cause the entire app to re-render.
+React has optimizations which create the appearance of whole app re-rendering while maintaining great performance.
+The bulk of these optimizations are part of a process called reconciliation.
+Reconciliation is the algorithm behind what is popularly understood as the "virtual DOM." A high-level description goes something like this: when you render a React application, a tree of nodes that describes the app is generated and saved in memory. This tree is then flushed to the rendering environment — for example, in the case of a browser application, it's translated to a set of DOM operations. When the app is updated (usually via setState), a new tree is generated. The new tree is diffed with the previous tree to compute which operations are needed to update the rendered app.
+Although Fiber is a ground-up rewrite of the reconciler, the high-level algorithm described in the React docs will be largely the same. The key points are:
+- Different component types are assumed to generate substantially different trees. React will not attempt to diff them, but rather replace the old tree completely.
+- Diffing of lists is performed using keys. Keys should be "stable, predictable, and unique." that means each tag should have a key. the tag is identified by it's key by diffing algorithm.  => imp.
+The DOM is just one of the rendering environments React can render to, the other major targets being native iOS and Android views via React Native. (This is why "virtual DOM" is a bit of a misnomer.). This means react with DOM works on websites and react with native works on ios and android. i.e. dom and native are the rendering environments for react.
+The reason it can support so many targets is because React is designed so that reconciliation and rendering are separate phases. The reconciler does the work of computing which parts of a tree have changed; the renderer then uses that information to actually update the rendered app.
+This separation means that React DOM and React Native can use their own renderers while sharing the same reconciler, provided by React core.
+Fiber reimplements the reconciler. It is not principally concerned with rendering, though renderers will need to change to support (and take advantage of) the new architecture.
+scheduling
+the process of determining when work should be performed.
+work
+any computations that must be performed. Work is usually the result of an update (e.g. setState).
+
+1. Past Behavior of React (React’s synchronous update)
+Past: When something changes in your app (e.g., a state update), React recursively walks through the component tree and re-renders all components that are affected in one go (in a single tick).
+This is done immediately — no delay — which means:
+If the update is small, it’s fast.
+But if the update is big or many updates happen quickly, React might block the main thread and cause frame drops (laggy animations, stutter).
+2. Current Behavior (Asynchronous & Prioritized Updates)
+React is exploring the idea of delaying or prioritizing some updates so the app stays smooth:
+If an update isn’t urgent (e.g., rendering content that’s offscreen), React can pause or delay it until the CPU/GPU is free.
+Urgent updates (like a button click animation) are done immediately to keep the UI responsive.
+This is part of React’s Concurrent Rendering and Scheduling ideas.
+3. Push vs Pull
+Push approach (common in other libraries):
+When new data arrives, immediately process and update everything (“push” the changes to the UI).
+Pull approach (React):
+React waits until rendering time to “pull” the latest data it needs, so it can:
+Merge multiple updates together (batching).
+Decide which updates to process first.
+Skip unnecessary work.
+Why React prefers pull.
+Because React knows exactly what’s visible and important to the user right now. It can decide:
+“This is offscreen → delay rendering.”
+“The user is scrolling → prioritize smooth animation.”
+“Network data arrived → batch it into the next frame.”
+4. Benefits of This Approach
+Avoid dropped frames → animations stay at 60fps.
+Better battery life → avoid wasting CPU on things not visible.
+Prioritization → important actions feel instant, less important work waits.
+Batched updates → fewer renders = better performance.
+5. Real-World Example
+Imagine you have:
+A chat app with a list of messages.
+You’re scrolling through old messages (offscreen ones are loading).
+At the same time, a friend sends a new message.
+With push:
+The app might update the offscreen list and render the new message immediately — possibly causing stutter.
+With pull (React’s approach):
+React can pause the offscreen loading update.
+First render the new incoming message smoothly.
+Later finish rendering the offscreen messages when idle.
+
+Now the React uses Pull approach.
+Before React 16 (pre-2017)
+React updates were fully synchronous.
+Once a render started, it ran to completion — no pausing.
+Still technically “pull,” because React didn’t eagerly push every incoming change immediately; it waited until render time.
+But no prioritization — all updates were treated equally.
+React 16 (Fiber architecture, 2017)
+Fiber introduced a new rendering engine that split work into units and made it possible to pause, resume, or drop rendering work.
+Still mostly synchronous in practice, but the groundwork for delaying and prioritizing updates was laid.
+This is where the real “pull with prioritization” concept started being implemented.
+React 18 (Concurrent Features, 2022)
+Concurrent rendering became available.
+React can now:
+Delay rendering offscreen components.
+Batch updates more aggressively.
+Interrupt rendering to handle more urgent updates first.
+This matches exactly what your excerpt described — React “pulls” data when needed, and chooses the priority.
+Example: startTransition() lets you mark some state updates as “non-urgent,” so they can be delayed.
+Today (2025)
+React’s reconciler still pulls the latest data at render time rather than pushing every update instantly.
+It uses scheduling + prioritization in concurrent mode.
+Urgent UI work (clicks, typing, animations) is processed first.
+Background work (offscreen rendering, network updates) can be delayed until frames are free.
+
+A push-based approach requires the app (you, the programmer) to decide how to schedule work. A pull-based approach allows the framework (React) to be smart and make those decisions for you.
+
+What is a fiber?
+
+
+---------------------------
+
+Batch updates by useState:
+
+const [counter,setCounter] = useState(0);
+setCounter(counter+1);
+setCounter(counter+1);
+setCounter(counter+1);
+setCounter(counter+1);
+
+here we did the same operation 4 times. so the Behavior of the useState is to whenever to send the updates to UI/variables, it send it by batches.
+Now here the same operation is performed multiple times, so from the batch it will ignore all the duplicate operations and only perform it once.
+
+Now what if we have to do these multiple duplicate operations.
+
+setCounter((prevCounter)=> prevCounter+1);
+setCounter((prevCounter)=> prevCounter+1);
+setCounter((prevCounter)=> prevCounter+1);
+setCounter((prevCounter)=> prevCounter+1);
+
+now here all 4 operations will be executed as the setCounter now has taken a callback which receives the current value of counter as parameter and then we are making changes in current value and returning new value to set in the counter.
+This works as we take the previous state as parameter and then using it we do further changes.
+This is how useState works.
+
+also dont forget, never to change state variable like counter++ or anything like this which will change counter variable itself, instead you can assign different values to state variables using setCounter.
+changing state variables itself does not work in react.
+
+
+----------------------------
+useRef:
+When to Use useRef
+To access DOM elements directly (focus, scroll, measure, etc.).
+To store mutable values that don’t affect rendering (like timeouts, previous values, counters).
+To hold onto something between renders without re-triggering renders.
+For instance variables in functional components (like in class components).
+Things to Remember
+Updating ref.current does NOT cause a re-render.
+useRef() is like a box that survives for the entire component's lifetime.
+If you need to re-render when a value changes → use useState instead.
+useRef is not reactive — React won’t track changes to it for rendering.
+---------------------------
+useCallback:
+useCallback in React is a hook that returns a memoized version of a function, so that the function’s reference only changes when its dependencies change.
+It helps you avoid re-creating the same function every render when you don’t need to — which can prevent unnecessary re-renders of child components.
+const memoizedCallback = useCallback(
+  () => {
+    // Your function logic here
+  },
+  [dependency1, dependency2] // Dependencies
+);
+memoizedCallback will always have the same reference unless one of the dependencies changes.
+Every time a React component re-renders, all functions inside it are re-created.
+Normally, this is fine, but:
+If you pass a function as a prop to a child component that is React.memo-ized, the child will still re-render if the function’s reference changes.
+Or if the function is used inside another hook like useEffect, it might cause unnecessary effect runs.
+useCallback fixes this by reusing the same function reference between renders unless dependencies change.
+When to Use useCallback
+When you pass functions as props to memoized child components.
+When a function is used inside another hook (useEffect, useMemo, etc.) and you don’t want it to trigger extra runs.
+When re-creating a function is expensive (e.g., heavy computations inside).
+When NOT to Use
+Don’t use it for every function — it adds complexity and memory usage.
+If a function is small and doesn’t cause performance problems, skip useCallback.
+
+If a function is causing unnecessary re-renders or re-running expensive effects — consider useCallback.
+---------------------------
+Context API:
+The Context API in React is a built-in way to share data across components without passing props manually through every level of the tree (also called “prop drilling”).
+Think of it like a global store for your component tree — but scoped to whatever part of the tree you wrap it around.
+Normally in React:
+If you have a value in a parent and you want a deeply nested child to use it, you must pass it through every intermediate component as a prop.
+This is called prop drilling and becomes painful for things like themes, authentication data, or language settings.
+Context solves this by letting you:
+Store data in a “context”
+Let any descendant component read it directly — no need to pass props manually.
+Basic Steps to Use Context API:
+
+Step 1: Create the Context
+import React from "react";
+const ThemeContext = React.createContext("light"); // default value
+
+Step 2: Provide the Context Value
+Wrap your component tree with a Provider:
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+value="dark" will be available to any component inside Toolbar (and its children).
+
+Step 3: Consume the Context Value
+Method A: Using useContext hook (recommended for functional components):
+function ThemedButton() {
+  const theme = React.useContext(ThemeContext);
+  return <button className={theme}>I am {theme} themed</button>;
+}
+Method B: Using <ThemeContext.Consumer> (older style):
+<ThemeContext.Consumer>
+  {theme => <button className={theme}>I am {theme} themed</button>}
+</ThemeContext.Consumer>
+
+When to Use Context
+Use Context when:
+You have global-like data:
+Current theme (light/dark)
+Authenticated user data
+Language/locale settings
+Cart items in an e-commerce app
+You want to avoid prop drilling.
+The data changes occasionally, not constantly (frequent changes can trigger many re-renders).
+
+When NOT to Use Context
+For very frequently changing values (e.g., mouse position, animations) — it can cause too many re-renders in consumers.
+When the data is only needed by 1–2 components — props are simpler.
+
+How it Works
+When the value of a Context changes, React will re-render every single component that uses that context — no matter how deep in the tree they are.
+This happens even if the component only uses part of the context value and that part didn’t change.
+
+Why This Happens
+React’s Context change detection uses reference equality (Object.is).
+If the value prop changes reference → all useContext consumers re-render.
+This is by design: React assumes if the provider’s value changed, all consumers may need the new value.
+
+
+vite, parcel these are tool chains used to bundle the react application. They are also known as bundler. vite is mostly used.
+
+
+In case, while development or in production when both frontend and backend are served on the same server.
+PROXY : now when we want to do a call to a api from frontend we use axios, fetch, etc. 
+        in axios/fetch we mention the url as, https://localhost:3000/api/page1
+        now for every different api call the http://localhost:3000/ is common.
+        so what we can do is we can store it in a variable and append that variable wherever needed. Now these varuables are known as proxies.
+        and there are more standerdised ways to store this instead of using a varuable. We can use proxies whose implementation changes if u=you use creat react app to create your app or if you used vite.
+        In case of creat react app you need to add a key value pair in package.json 'proxy':'http://localhost:3000/'
+When you’re developing a frontend (React, Vite, Angular, etc.), your app usually runs on one port (e.g., http://localhost:5173 for Vite or http://localhost:3000 for CRA).
+But your backend API often runs on a different port (e.g., http://localhost:5000).
+Now, if your frontend directly calls:
+fetch("http://localhost:5000/api/page1")
+the browser sees it as cross-origin (different port = different origin) → and CORS issues happen.
+👉 To solve this, we set up a proxy:
+Instead of calling http://localhost:5000/api/... directly, the frontend calls a “fake” path like /api/....
+The dev server intercepts /api/... and forwards it (proxies it) to the backend server.
+Example in Create React App (CRA)
+In package.json, add:
+"proxy": "http://localhost:5000"
+Now in your frontend:
+fetch("/api/page1")
+CRA dev server will proxy the request to http://localhost:5000/api/page1.
+This avoids CORS, and you don’t have to repeat the base URL.
+
+Dev Server (Development Server)
+A dev server is a lightweight web server that runs during development to serve your frontend application, handle hot reloading, and sometimes proxy API requests.
+It’s not your production server — it’s only for local development to make coding faster and easier.
+
+When you deploy your app, you don’t usually run a “dev server” anymore. Instead, you serve your built static frontend files (HTML, CSS, JS) and also need to connect them to your backend APIs.
+Since there’s no dev server to “forward” requests, you have a few options:
