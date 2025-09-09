@@ -52,6 +52,8 @@ const ContextProvider = ({ children }) => {
         navigate('/board');
     }
 
+    // socket events
+
     socket.on('startGame', (data) => {
         setOpponentId(data.joinerId)
         // console.log(data)
@@ -62,32 +64,75 @@ const ContextProvider = ({ children }) => {
         navigate('/board');
     })
 
-    function sendMove(selectedI, selectedJ, moveI, moveJ) {
-        socket.emit('moveSent', { to: opponentId, selectedI: selectedI, selectedJ: selectedJ, moveI: moveI, moveJ: moveJ });
-    }
-
     socket.on('moveReceived', (data) => {
         let board = GameBoard.map(row => row.map(square => square ? square : null));
         setIsYourChance(true);
         console.log('receiving board');
         console.log(data.selectedI, data.selectedJ, data.moveI, data.moveJ);
-        let fallenPieceColor;
-        if (board[data.moveI][data.moveJ]) fallenPieceColor = board[data.moveI][data.moveJ]?.pieceColor;
-        let fallenPieceName = board[data.moveI][data.moveJ]?.pieceName;
-        if (board[data.moveI][data.moveJ]) FallenPiece[fallenPieceColor === 'black' ? 1 : 0].push(board[data.selectedI][data.selectedJ]);
-        board[data.moveI][data.moveJ] = board[data.selectedI][data.selectedJ];
-        if (fallenPieceName === 'king') {
-            alert(isWhiteChance ? 'Black Won' : 'White Won');
-            navigate('/');
-            window.location.reload();
-            // return;
+
+        if (data.castled !== 'yes') {
+            let fallenPieceColor;
+            if (board[data.moveI][data.moveJ]) fallenPieceColor = board[data.moveI][data.moveJ]?.pieceColor;
+            let fallenPieceName = board[data.moveI][data.moveJ]?.pieceName;
+            if (board[data.moveI][data.moveJ]) FallenPiece[fallenPieceColor === 'black' ? 1 : 0].push(board[data.selectedI][data.selectedJ]);
+            board[data.moveI][data.moveJ] = board[data.selectedI][data.selectedJ];
+            if (fallenPieceName === 'king') {
+
+                alert(isWhiteChance ? 'Black Won' : 'White Won');
+                navigate('/');
+                window.location.reload();
+                // return;
+            }
+            board[data.selectedI][data.selectedJ] = null;
+        } else {
+            console.log('castled');
+            if (board[data.moveI][data.moveJ]?.pieceName === 'king') {
+                if (data.selectedI < data.moveI) {
+                    board[data.moveI - 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    board[data.moveI - 1][data.moveJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                } else {
+                    board[data.moveI + 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    board[data.moveI + 1][data.moveJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                }
+
+            } else {
+                if (data.selectedI < data.moveI) {
+                    board[data.selectedI + 2][data.selectedJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    board[data.selectedI + 1][data.selectedJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                } else {
+                    board[data.selectedI - 2][data.selectedJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    board[data.selectedI - 1][data.selectedJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                }
+            }
+            board[data.moveI][data.moveJ] = null;
+            board[data.selectedI][data.selectedJ] = null;
         }
-        board[data.selectedI][data.selectedJ] = null;
-        console.log(board);
-        setGameBoard(board);
+        console.log('before replacing');
+
+        if (data.replaced === 'yes') {
+            console.log('replaced received');
+            if (data.pieceName === 'queen') {
+                board[data.moveI][data.moveJ] = new Queen(data.pieceColor);
+            } else if (data.pieceName === 'knight') {
+                board[data.moveI][data.moveJ] = new Knight(data.pieceColor);
+            } else if (data.pieceName === 'bishop') {
+                board[data.moveI][data.moveJ] = new Bishop(data.pieceColor);
+            } else if (data.pieceName === 'rook') {
+                board[data.moveI][data.moveJ] = new Rook(data.pieceColor);
+                board[data.moveI][data.moveJ]?.setCastleFalse();
+            }
+        }
+
+        setGameBoard(board)
     })
 
-    
+    // On Click handlers
+
+    function sendMove(selectedI, selectedJ, moveI, moveJ, castled, replaced, pieceName, pieceColor) {
+        socket.emit('moveSent', { to: opponentId, selectedI: selectedI, selectedJ: selectedJ, moveI: moveI, moveJ: moveJ, castled: castled, replaced: replaced, pieceName: pieceName, pieceColor: pieceColor });
+    }
+
+
     return (<BoardContext.Provider value={{
         GameBoard,
         selectedI,
