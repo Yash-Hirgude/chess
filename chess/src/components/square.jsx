@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
+// import { Navigate } from 'react-router-dom';
 import { BoardContext } from '../context/BoardContext';
 import Bishop from '../Utils/Bishop';
 import King from '../Utils/King';
@@ -6,13 +7,16 @@ import Knight from '../Utils/Knight';
 import Queen from '../Utils/Queen';
 import Rook from '../Utils/Rook';
 import PieceSelection from './pieceSelection';
+import { useNavigate } from 'react-router';
 
 function Square({ i, j, bgColor }) {
 
     const [displaySymbol, setDisplaySymbol] = useState(null);
-    let { GameBoard, selectedI, selectedJ, FallenPiece, setSelectedI, setSelectedJ, setGameBoard, isWhiteChance, setIsWhiteChance } = useContext(BoardContext);
+    let { GameBoard, selectedI, selectedJ, FallenPiece, setSelectedI, setSelectedJ, setGameBoard, isWhiteChance, setIsWhiteChance, isMultiplayer, isYourChance, setIsYourChance, sendMove } = useContext(BoardContext);
     const [piece, setPiece] = useState(GameBoard[i][j]?.pieceName);
     const [open,setOpen] = useState(false);
+    const navigate = useNavigate();
+
     let bgColorMap = {
         'black': 'bg-[#4A3E3C]',
         'white': 'bg-[#5A5350]'
@@ -55,6 +59,7 @@ function Square({ i, j, bgColor }) {
                 (!isWhiteChance && GameBoard[i][j]?.pieceColor !== "black"))) {
             return;
         }
+        if(isMultiplayer && !isYourChance) return;
         if (selectedI === null || selectedJ === null) {
             setSelectedI(i);
             setSelectedJ(j);
@@ -72,16 +77,12 @@ function Square({ i, j, bgColor }) {
                 return;
             }
             else if(canReplace){
-                setIsWhiteChance(!isWhiteChance);
+                if(!isMultiplayer) setIsWhiteChance(!isWhiteChance);
+                else setIsYourChance(false);
                 let fallenPieceColor;
                 if (GameBoard[i][j]) fallenPieceColor = GameBoard[i][j]?.pieceColor;
                 let fallenPieceName = GameBoard[i][j]?.pieceName;
                 GameBoard[i][j] = GameBoard[selectedI][selectedJ];
-                if (fallenPieceName === 'king') {
-                    alert(isWhiteChance ? 'White Won' : 'Black Won');
-                    window.location.reload();
-                    return;
-                }
                 if (GameBoard[i][j]) FallenPiece[fallenPieceColor === 'black' ? 1 : 0].push(GameBoard[selectedI][selectedJ]);
                 GameBoard[selectedI][selectedJ] = null;
                 if ( (j === 0 && GameBoard[i][j]?.pieceName === 'pawn' && GameBoard[i][j]?.pieceColor === 'black') || 
@@ -89,6 +90,13 @@ function Square({ i, j, bgColor }) {
                     setOpen(true);
                 }
                 setGameBoard(GameBoard);
+                sendMove(selectedI,selectedJ,i,j);
+                if (fallenPieceName === 'king') {
+                    alert(isWhiteChance ? 'White Won' : 'Black Won');
+                    navigate('/');
+                    window.location.reload();
+                    // return;
+                }
                 setSelectedI(null);
                 setSelectedJ(null);
             }
@@ -117,6 +125,10 @@ function Square({ i, j, bgColor }) {
                 setGameBoard(GameBoard);
                 setSelectedI(null);
                 setSelectedJ(null);
+
+
+                // sendMove();
+
             }
         }
     }
@@ -171,6 +183,7 @@ function Square({ i, j, bgColor }) {
         }
     }
     useEffect(() => {
+        // console.log(GameBoard);
         setPiece(GameBoard[i][j]?.pieceName)
         GameBoard[i][j]?.pieceColor === "white" ? getPieceWhite() : getPieceBlack();
 
