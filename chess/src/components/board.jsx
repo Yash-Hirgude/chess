@@ -25,7 +25,7 @@ function Board({ device }) {
     }, []);
 
     return (
-        <div className="aspect-square w-[100vw] max-w-[90vh] flex flex-row justify-center items-center border-stone-700 border-2">
+        <div className="aspect-square w-[100vw] max-w-[90vh] flex flex-row justify-center items-center border-stone-700">
             {
                 board.map((row, idx) => {
                     return <div key={idx} className="w-full h-full">{row}</div>

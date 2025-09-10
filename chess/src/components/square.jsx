@@ -200,9 +200,9 @@ function Square({ i, j, bgColor }) {
 
     })
     return (
-        <div className={`h-[12.5%] w-full ${bgColorMap[bgColor]}`} onClick={clickHandler}>
+        <div className={`h-[18%] md:h-[12.5%] w-full ${bgColorMap[bgColor]}`} onClick={clickHandler}>
             <PieceSelection open={open} closeHandler={closeHandler} />
-            <div className={`h-full w-full flex items-center justify-center text-center text-[8.125vh]`}> 
+            <div className={`h-full w-full flex items-center justify-center text-center text-[8.125vh] md:text-[6.875vh] sm:text-[5.625vh]`}> 
                 {displaySymbol}
             </div>
         </div>

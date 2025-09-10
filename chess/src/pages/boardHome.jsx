@@ -44,7 +44,7 @@ function BoardHome() {
     }, []);
 
     return (
-        <div className="w-screen h-screen flex flex-col justify-center items-center">
+        <div className="w-screen h-[80vh] flex items-center justify-center border-2">
             <Board device={receivedData} />
         </div>
     );
