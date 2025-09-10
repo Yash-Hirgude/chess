@@ -35,6 +35,7 @@ const ContextProvider = ({ children }) => {
     const [me, setMe] = useState('');
     const [opponentId, setOpponentId] = useState('');
     const [GameOver, setGameOver] = useState(false);
+    const [OpponentLeftAlert, setOpponentLeftAlert] = useState(false);
 
 
     useEffect(() => {
@@ -52,6 +53,7 @@ const ContextProvider = ({ children }) => {
         setIsYourChance(false);
         setIsWhiteChance(false);
         setGameOver(false);
+        setOpponentLeftAlert(false)
         navigate('/board');
     }
 
@@ -63,6 +65,7 @@ const ContextProvider = ({ children }) => {
         setIsYourChance(true);
         setIsWhiteChance(true);
         setGameOver(false);
+        setOpponentLeftAlert(false)
         navigate('/board');
     })
 
@@ -124,7 +127,10 @@ const ContextProvider = ({ children }) => {
 
     socket.on('clearSocket', () => {
         setOpponentId('');
-        if(!GameOver) alert('Opponent Left');
+        if(!GameOver) {
+            if(!OpponentLeftAlert) alert('Opponent Left');
+            setOpponentLeftAlert(true);
+        }
         navigate('/');
     })
 
@@ -162,7 +168,9 @@ const ContextProvider = ({ children }) => {
         sendMove,
         clearSocketConnection,
         GameOver,
-        setGameOver
+        setGameOver,
+        OpponentLeftAlert,
+        setOpponentLeftAlert
     }}>
         {children}
     </BoardContext.Provider>);

@@ -26,7 +26,7 @@ function BoardHome() {
             setIsYourChance(false);
             setFallenPiece([[],[]]);
             setIsMultiplayer(false);
-            
+
             setGameBoard([
                 [new Rook("white"), new Pawn("white"), null, null, null, null, new Pawn("black"), new Rook("black")],
                 [new Knight("white"), new Pawn("white"), null, null, null, null, new Pawn("black"), new Knight("black")],
