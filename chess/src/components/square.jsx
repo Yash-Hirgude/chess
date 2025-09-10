@@ -193,7 +193,6 @@ function Square({ i, j, bgColor }) {
         }
     }
     useEffect(() => {
-        // console.log(GameBoard);
         setPiece(GameBoard[i][j]?.pieceName)
         GameBoard[i][j]?.pieceColor === "white" ? getPieceWhite() : getPieceBlack();
 

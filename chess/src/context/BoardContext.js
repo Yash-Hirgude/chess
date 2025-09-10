@@ -39,12 +39,15 @@ const ContextProvider = ({ children }) => {
 
 
     useEffect(() => {
-        console.log('print id');
         socket.emit("getMe");
-        socket.on("me", (id) => {
+        const handleMe = (id) => {
             setMe(id);
-            console.log("here is your id:", id);
-        });
+        };
+        socket.on("me", handleMe);
+
+        return () => {
+            socket.off("me", handleMe);
+        }
     }, []);
 
     function startGame() {
@@ -54,85 +57,111 @@ const ContextProvider = ({ children }) => {
         setIsWhiteChance(false);
         setGameOver(false);
         setOpponentLeftAlert(false)
+        alert('Your Piece color is Black! White makes the first move');
         navigate('/board');
     }
 
-    // socket events
+    // socket events (inside useEffect to avoid duplicate listeners)
+    // If we register socket listeners directly in the component body, they will be added again on every re-render.
+    // That causes one event emission to trigger multiple listeners. 
+    // By using useEffect with a cleanup (socket.off), we ensure each listener is only attached once 
+    // and properly removed when the component unmounts or re-renders.
 
-    socket.on('startGame', (data) => {
-        setOpponentId(data.joinerId)
-        setIsMultiplayer(true);
-        setIsYourChance(true);
-        setIsWhiteChance(true);
-        setGameOver(false);
-        setOpponentLeftAlert(false)
-        navigate('/board');
-    })
+    useEffect(() => {
+        // start game
 
-    socket.on('moveReceived', (data) => {
-        let board = GameBoard.map(row => row.map(square => square ? square : null));
-        setIsYourChance(true);
+        const handleStartGame = (data) => {
+            setOpponentId(data.joinerId);
+            setIsMultiplayer(true);
+            setIsYourChance(true);
+            setIsWhiteChance(true);
+            setGameOver(false);
+            setOpponentLeftAlert(false);
+            navigate('/board');
+            alert('Your Piece color is White! You make the first move')
+        };
+        socket.on('startGame', handleStartGame);
 
-        if (data.castled !== 'yes') {
-            let fallenPieceColor;
-            if (board[data.moveI][data.moveJ]) fallenPieceColor = board[data.moveI][data.moveJ]?.pieceColor;
-            let fallenPieceName = board[data.moveI][data.moveJ]?.pieceName;
-            if (board[data.moveI][data.moveJ]) FallenPiece[fallenPieceColor === 'black' ? 1 : 0].push(board[data.selectedI][data.selectedJ]);
-            board[data.moveI][data.moveJ] = board[data.selectedI][data.selectedJ];
-            if (fallenPieceName === 'king') {
-                setGameOver(true);
-                alert(isWhiteChance ? 'Black Won' : 'White Won');
-                navigate('/');
-                window.location.reload();
-                // return;
-            }
-            board[data.selectedI][data.selectedJ] = null;
-        } else {
-            if (board[data.moveI][data.moveJ]?.pieceName === 'king') {
-                if (data.selectedI < data.moveI) {
-                    board[data.moveI - 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
-                    board[data.moveI - 1][data.moveJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
-                } else {
-                    board[data.moveI + 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
-                    board[data.moveI + 1][data.moveJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+        // receiving move
+
+        const handleMoveReceived = (data) => {
+            let board = GameBoard.map(row => row.map(square => square ? square : null));
+            setIsYourChance(true);
+
+            if (data.castled !== 'yes') {
+                let fallenPieceColor;
+                if (board[data.moveI][data.moveJ]) fallenPieceColor = board[data.moveI][data.moveJ]?.pieceColor;
+                let fallenPieceName = board[data.moveI][data.moveJ]?.pieceName;
+                if (board[data.moveI][data.moveJ]) FallenPiece[fallenPieceColor === 'black' ? 1 : 0].push(board[data.selectedI][data.selectedJ]);
+                board[data.moveI][data.moveJ] = board[data.selectedI][data.selectedJ];
+                if (fallenPieceName === 'king') {
+                    setGameOver(true);
+                    alert(isWhiteChance ? 'Black Won' : 'White Won');
+                    navigate('/');
+                    window.location.reload();
+                    // return;
                 }
-
+                board[data.selectedI][data.selectedJ] = null;
             } else {
-                if (data.selectedI < data.moveI) {
-                    board[data.selectedI + 2][data.selectedJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
-                    board[data.selectedI + 1][data.selectedJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                if (board[data.moveI][data.moveJ]?.pieceName === 'king') {
+                    if (data.selectedI < data.moveI) {
+                        board[data.moveI - 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                        board[data.moveI - 1][data.moveJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    } else {
+                        board[data.moveI + 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                        board[data.moveI + 1][data.moveJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    }
+
                 } else {
-                    board[data.selectedI - 2][data.selectedJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
-                    board[data.selectedI - 1][data.selectedJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    if (data.selectedI < data.moveI) {
+                        board[data.selectedI + 2][data.selectedJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                        board[data.selectedI + 1][data.selectedJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    } else {
+                        board[data.selectedI - 2][data.selectedJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                        board[data.selectedI - 1][data.selectedJ] = new Rook(GameBoard[data.moveI][data.moveJ]?.pieceColor);
+                    }
+                }
+                board[data.moveI][data.moveJ] = null;
+                board[data.selectedI][data.selectedJ] = null;
+            }
+            if (data.replaced === 'yes') {
+                if (data.pieceName === 'queen') {
+                    board[data.moveI][data.moveJ] = new Queen(data.pieceColor);
+                } else if (data.pieceName === 'knight') {
+                    board[data.moveI][data.moveJ] = new Knight(data.pieceColor);
+                } else if (data.pieceName === 'bishop') {
+                    board[data.moveI][data.moveJ] = new Bishop(data.pieceColor);
+                } else if (data.pieceName === 'rook') {
+                    board[data.moveI][data.moveJ] = new Rook(data.pieceColor);
+                    board[data.moveI][data.moveJ]?.setCastleFalse();
                 }
             }
-            board[data.moveI][data.moveJ] = null;
-            board[data.selectedI][data.selectedJ] = null;
+
+            setGameBoard(board)
         }
-        if (data.replaced === 'yes') {
-            if (data.pieceName === 'queen') {
-                board[data.moveI][data.moveJ] = new Queen(data.pieceColor);
-            } else if (data.pieceName === 'knight') {
-                board[data.moveI][data.moveJ] = new Knight(data.pieceColor);
-            } else if (data.pieceName === 'bishop') {
-                board[data.moveI][data.moveJ] = new Bishop(data.pieceColor);
-            } else if (data.pieceName === 'rook') {
-                board[data.moveI][data.moveJ] = new Rook(data.pieceColor);
-                board[data.moveI][data.moveJ]?.setCastleFalse();
+
+        socket.on('moveReceived', handleMoveReceived);
+
+
+        // clear socket
+        const handleClearSocket = () => {
+            setOpponentId('');
+            if (!GameOver) {
+                setOpponentLeftAlert(true);
+                alert('Opponent Left');
             }
-        }
+            navigate('/');
+        };
+        socket.on('clearSocket', handleClearSocket);
 
-        setGameBoard(board)
-    })
 
-    socket.on('clearSocket', () => {
-        setOpponentId('');
-        if(!GameOver) {
-            if(!OpponentLeftAlert) alert('Opponent Left');
-            setOpponentLeftAlert(true);
-        }
-        navigate('/');
-    })
+        // cleanup on re render
+        return () => {
+            socket.off("clearSocket", handleClearSocket);
+            socket.off("moveReceived", handleMoveReceived);
+            socket.off("startGame", handleStartGame);
+        };
+    }, [GameBoard, GameOver])
 
     // On Click handlers
 

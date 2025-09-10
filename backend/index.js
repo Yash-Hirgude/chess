@@ -25,7 +25,6 @@ app.get("/", (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('user connected, ', socket.id);
     socket.on("getMe", () => {
         socket.emit("me", socket.id);
     });

@@ -17,8 +17,6 @@ function BoardHome() {
 
     useEffect(() => {
         return () => {
-            // unmounting code
-            console.log('unmounting board');
             setOpponentId('');
             setSelectedI(null);
             setSelectedJ(null);
