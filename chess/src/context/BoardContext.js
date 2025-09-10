@@ -32,6 +32,7 @@ const ContextProvider = ({ children }) => {
     let [isYourChance, setIsYourChance] = useState(false);
     const [me, setMe] = useState('');
     const [opponentId, setOpponentId] = useState('');
+    const [GameOver, setGameOver] = useState(false);
 
 
     useEffect(() => {
@@ -77,7 +78,7 @@ const ContextProvider = ({ children }) => {
             if (board[data.moveI][data.moveJ]) FallenPiece[fallenPieceColor === 'black' ? 1 : 0].push(board[data.selectedI][data.selectedJ]);
             board[data.moveI][data.moveJ] = board[data.selectedI][data.selectedJ];
             if (fallenPieceName === 'king') {
-
+                setGameOver(true);
                 alert(isWhiteChance ? 'Black Won' : 'White Won');
                 navigate('/');
                 window.location.reload();
@@ -126,10 +127,22 @@ const ContextProvider = ({ children }) => {
         setGameBoard(board)
     })
 
+    socket.on('clearSocket', () => {
+        setOpponentId('');
+        console.log('opponent left');
+        if(!GameOver) alert('Opponent Left');
+        navigate('/');
+    })
+
     // On Click handlers
 
     function sendMove(selectedI, selectedJ, moveI, moveJ, castled, replaced, pieceName, pieceColor) {
         socket.emit('moveSent', { to: opponentId, selectedI: selectedI, selectedJ: selectedJ, moveI: moveI, moveJ: moveJ, castled: castled, replaced: replaced, pieceName: pieceName, pieceColor: pieceColor });
+    }
+
+    function clearSocketConnection() {
+        socket.emit('clearSocket', { to: opponentId });
+        setOpponentId('');
     }
 
 
@@ -152,7 +165,10 @@ const ContextProvider = ({ children }) => {
         opponentId,
         setOpponentId,
         startGame,
-        sendMove
+        sendMove,
+        clearSocketConnection,
+        GameOver,
+        setGameOver
     }}>
         {children}
     </BoardContext.Provider>);

@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router';
 function Square({ i, j, bgColor }) {
 
     const [displaySymbol, setDisplaySymbol] = useState(null);
-    let { GameBoard, selectedI, selectedJ, FallenPiece, setSelectedI, setSelectedJ, setGameBoard, isWhiteChance, setIsWhiteChance, isMultiplayer, isYourChance, setIsYourChance, sendMove } = useContext(BoardContext);
+    let { GameBoard, selectedI, selectedJ, FallenPiece, setSelectedI, setSelectedJ, setGameBoard, isWhiteChance, setIsWhiteChance, isMultiplayer, isYourChance, setIsYourChance, sendMove, GameOver, setGameOver } = useContext(BoardContext);
     const [piece, setPiece] = useState(GameBoard[i][j]?.pieceName);
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
@@ -98,6 +98,7 @@ function Square({ i, j, bgColor }) {
                 setGameBoard(GameBoard);
                 if (!isReplaced) sendMove(selectedI, selectedJ, i, j, 'no', 'no', 'null', 'null');
                 if (fallenPieceName === 'king') {
+                    setGameOver(true);
                     alert(isWhiteChance ? 'White Won' : 'Black Won');
                     navigate('/');
                     window.location.reload();

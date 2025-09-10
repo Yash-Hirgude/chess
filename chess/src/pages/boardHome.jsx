@@ -13,19 +13,19 @@ import Knight from '../Utils/Knight';
 function BoardHome() {
     const location = useLocation();
     const receivedData = location.state;
-    let { setSelectedI, setSelectedJ, setGameBoard, setIsWhiteChance, setIsYourChance, setFallenPiece, setIsMultiplayer, setOpponentId } = useContext(BoardContext)
+    let { setSelectedI, setSelectedJ, setGameBoard, setIsWhiteChance, setIsYourChance, setFallenPiece, setIsMultiplayer, setOpponentId, clearSocketConnection, opponentId } = useContext(BoardContext)
 
     useEffect(() => {
         return () => {
             // unmounting code
             console.log('unmounting board');
+            setOpponentId('');
             setSelectedI(null);
             setSelectedJ(null);
             setIsWhiteChance(true);
             setIsYourChance(false);
             setFallenPiece([[],[]]);
             setIsMultiplayer(false);
-            setOpponentId('');
             setGameBoard([
                 [new Rook("white"), new Pawn("white"), null, null, null, null, new Pawn("black"), new Rook("black")],
                 [new Knight("white"), new Pawn("white"), null, null, null, null, new Pawn("black"), new Knight("black")],
@@ -36,6 +36,10 @@ function BoardHome() {
                 [new Knight("white"), new Pawn("white"), null, null, null, null, new Pawn("black"), new Knight("black")],
                 [new Rook("white"), new Pawn("white"), null, null, null, null, new Pawn("black"), new Rook("black")]
             ]);
+
+            // add socket connection remove code here
+            if(opponentId) clearSocketConnection();
+
 
         }
     }, []);
