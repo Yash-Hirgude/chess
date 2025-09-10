@@ -19,7 +19,6 @@ function Board({ device }) {
                 for (let j = 0; j < 8; j++) {
                     newRow.push(<Square i={i} j={j} bgColor={`${(i + j) % 2 === 0 ? "black" : "white"}`} key={`${i}-${j}`} />);
                 }
-                // setBoard((preBoard)=>[...preBoard,(<div className='block w-full h-full'>{newRow}</div>)]);
                 boardTemp = [...boardTemp, newRow];
             }
             setBoard(boardTemp);
@@ -36,10 +35,6 @@ function Board({ device }) {
 
 
         </div>
-        // <div>
-
-        // </div>
-
     )
 }
 

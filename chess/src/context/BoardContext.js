@@ -48,10 +48,10 @@ const ContextProvider = ({ children }) => {
 
     function startGame() {
         socket.emit('startGame', { to: opponentId, joinerId: me });
-        console.log('sending...', me, opponentId);
         setIsMultiplayer(true);
         setIsYourChance(false);
         setIsWhiteChance(false);
+        setGameOver(false);
         navigate('/board');
     }
 
@@ -59,19 +59,16 @@ const ContextProvider = ({ children }) => {
 
     socket.on('startGame', (data) => {
         setOpponentId(data.joinerId)
-        // console.log(data)
-        console.log('receiving', me, data);
         setIsMultiplayer(true);
         setIsYourChance(true);
         setIsWhiteChance(true);
+        setGameOver(false);
         navigate('/board');
     })
 
     socket.on('moveReceived', (data) => {
         let board = GameBoard.map(row => row.map(square => square ? square : null));
         setIsYourChance(true);
-        console.log('receiving board');
-        console.log(data.selectedI, data.selectedJ, data.moveI, data.moveJ);
 
         if (data.castled !== 'yes') {
             let fallenPieceColor;
@@ -88,7 +85,6 @@ const ContextProvider = ({ children }) => {
             }
             board[data.selectedI][data.selectedJ] = null;
         } else {
-            console.log('castled');
             if (board[data.moveI][data.moveJ]?.pieceName === 'king') {
                 if (data.selectedI < data.moveI) {
                     board[data.moveI - 2][data.moveJ] = new King(GameBoard[data.moveI][data.moveJ]?.pieceColor);
@@ -110,10 +106,7 @@ const ContextProvider = ({ children }) => {
             board[data.moveI][data.moveJ] = null;
             board[data.selectedI][data.selectedJ] = null;
         }
-        console.log('before replacing');
-
         if (data.replaced === 'yes') {
-            console.log('replaced received');
             if (data.pieceName === 'queen') {
                 board[data.moveI][data.moveJ] = new Queen(data.pieceColor);
             } else if (data.pieceName === 'knight') {
@@ -131,7 +124,6 @@ const ContextProvider = ({ children }) => {
 
     socket.on('clearSocket', () => {
         setOpponentId('');
-        console.log('opponent left');
         if(!GameOver) alert('Opponent Left');
         navigate('/');
     })

@@ -102,7 +102,6 @@ function Square({ i, j, bgColor }) {
                     alert(isWhiteChance ? 'White Won' : 'Black Won');
                     navigate('/');
                     window.location.reload();
-                    // return;
                 }
                 if (!isReplaced) {
                     setSelectedI(null);
