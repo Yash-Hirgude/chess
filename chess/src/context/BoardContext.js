@@ -36,6 +36,7 @@ const ContextProvider = ({ children }) => {
     const [opponentId, setOpponentId] = useState('');
     const [GameOver, setGameOver] = useState(false);
     const [OpponentLeftAlert, setOpponentLeftAlert] = useState(false);
+    const [isWhite,setIsWhite] = useState(false);
 
 
     useEffect(() => {
@@ -52,8 +53,19 @@ const ContextProvider = ({ children }) => {
 
     function startGame() {
         socket.emit('startGame', { to: opponentId, joinerId: me });
+        // setGameBoard([
+        //     [new Rook("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Rook("white")],
+        //     [new Knight("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Knight("white")],
+        //     [new Bishop("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Bishop("white")],
+        //     [new King("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Queen("white")],
+        //     [new Queen("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new King("white")],
+        //     [new Bishop("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Bishop("white")],
+        //     [new Knight("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Knight("white")],
+        //     [new Rook("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Rook("white")]
+        // ])
         setIsMultiplayer(true);
         setIsYourChance(false);
+        setIsWhite(false);
         setIsWhiteChance(false);
         setGameOver(false);
         setOpponentLeftAlert(false)
@@ -71,9 +83,20 @@ const ContextProvider = ({ children }) => {
         // start game
 
         const handleStartGame = (data) => {
+            setGameBoard([
+                [new Rook("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Rook("white")],
+                [new Knight("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Knight("white")],
+                [new Bishop("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Bishop("white")],
+                [new King("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Queen("white")],
+                [new Queen("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new King("white")],
+                [new Bishop("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Bishop("white")],
+                [new Knight("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Knight("white")],
+                [new Rook("black"), new Pawn("black"), null, null, null, null, new Pawn("white"), new Rook("white")]
+            ])
             setOpponentId(data.joinerId);
             setIsMultiplayer(true);
             setIsYourChance(true);
+            setIsWhite(true);
             setIsWhiteChance(true);
             setGameOver(false);
             setOpponentLeftAlert(false);
@@ -199,7 +222,8 @@ const ContextProvider = ({ children }) => {
         GameOver,
         setGameOver,
         OpponentLeftAlert,
-        setOpponentLeftAlert
+        setOpponentLeftAlert,
+        isWhite
     }}>
         {children}
     </BoardContext.Provider>);

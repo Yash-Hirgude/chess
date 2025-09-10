@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('moveSent', (data) => {
-        io.to(data.to).emit('moveReceived', { selectedI: data.selectedI, selectedJ: data.selectedJ, moveI: data.moveI, moveJ: data.moveJ, castled: data.castled, replaced: data.replaced ,pieceName: data.pieceName, pieceColor: data.pieceColor  });
+        io.to(data.to).emit('moveReceived', { selectedI: 7-data.selectedI, selectedJ: 7-data.selectedJ, moveI: 7-data.moveI, moveJ: 7-data.moveJ, castled: data.castled, replaced: data.replaced ,pieceName: data.pieceName, pieceColor: data.pieceColor  });
     });
 
     socket.on('clearSocket',(data)=>{

@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router';
 function Square({ i, j, bgColor }) {
 
     const [displaySymbol, setDisplaySymbol] = useState(null);
-    let { GameBoard, selectedI, selectedJ, FallenPiece, setSelectedI, setSelectedJ, setGameBoard, isWhiteChance, setIsWhiteChance, isMultiplayer, isYourChance, setIsYourChance, sendMove, GameOver, setGameOver } = useContext(BoardContext);
+    let { GameBoard, selectedI, selectedJ, FallenPiece, setSelectedI, setSelectedJ, setGameBoard, isWhiteChance, setIsWhiteChance, isMultiplayer, isYourChance, setIsYourChance, sendMove, setGameOver, isWhite } = useContext(BoardContext);
     const [piece, setPiece] = useState(GameBoard[i][j]?.pieceName);
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
@@ -68,7 +68,8 @@ function Square({ i, j, bgColor }) {
             setSelectedI(i);
             setSelectedJ(j);
         } else {
-            let canReplace = GameBoard[selectedI][selectedJ].isMovePossible(selectedI, selectedJ, i, j, GameBoard);
+            console.log(selectedI, selectedJ, i, j);
+            let canReplace = GameBoard[selectedI][selectedJ].isMovePossible(selectedI, selectedJ, i, j, GameBoard, isWhite, isMultiplayer);
             let canCastle = false;
             if ((GameBoard[selectedI][selectedJ]?.pieceName === 'rook' && GameBoard[i][j]?.pieceName === 'king') ||
                 (GameBoard[selectedI][selectedJ]?.pieceName === 'king' && GameBoard[i][j]?.pieceName === 'rook')) {
@@ -81,6 +82,7 @@ function Square({ i, j, bgColor }) {
                 return;
             }
             else if (canReplace) {
+                // console.log(selectedI,selectedJ,i,j);
                 if (!isMultiplayer) setIsWhiteChance(!isWhiteChance);
                 else setIsYourChance(false);
                 let fallenPieceColor;
