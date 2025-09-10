@@ -8,7 +8,9 @@ import Pawn from '../Utils/Pawn';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router';
 
-const socket = io('http://localhost:8000/');
+const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:8000/';
+
+const socket = io(serverUrl);
 
 const BoardContext = createContext();
 
